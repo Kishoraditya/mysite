@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "wagtail.contrib.redirects",
     "wagtail.embeds",
     "wagtail.sites",
+    'wagtail.locales',
     "wagtail.users",
     "wagtail.snippets",
     "wagtail.documents",
@@ -56,6 +57,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    'django.middleware.locale.LocaleMiddleware',
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
 ]
 
@@ -74,6 +76,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                'blog.amp_context_processors.amp',
+                'django.template.context_processors.i18n',
             ],
         },
     },
@@ -120,11 +124,23 @@ LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 
 USE_I18N = True
-
+WAGTAIL_I18N_ENABLED = True
 USE_L10N = True
 
 USE_TZ = True
+LANGUAGES = [
+    ('en-GB', "English (Great Britain)"),
+    ('en-US', "English (United States)"),
+    ('en-CA', "English (Canada)"),
+    ('fr-FR', "French (France)"),
+    ('fr-CA', "French (Canada)"),
+]
 
+LANGUAGE_CODE = 'en'
+WAGTAIL_CONTENT_LANGUAGES = [
+    ('en-GB', "English"),
+    ('fr-FR', "French"),
+]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
