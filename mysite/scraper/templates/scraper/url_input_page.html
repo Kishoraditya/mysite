@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% load wagtailcore_tags %}
+
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block content %}
+    <h1>Scrape a Page</h1>
+
+  <h1>{{ page.title }}</h1>
+  
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Submit</button>
+  </form>
+{% endblock %}
