@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load wagtailcore_tags %}
+{% load wagtailcore_tags wagtailimages_tags %}
 {% load static %}
 
 {% block body_class %}template-homepage{% endblock %}
@@ -18,5 +18,49 @@ Delete the line below if you're just getting started and want to remove the welc
 Delete the line below if you're just getting started and want to remove the welcome screen!
 {% endcomment %}
 {% block content %}
-    {{ page.body|richtext }}
+
+    
+    {% for image in page.images.all %}
+        {% image image.banner_image width-3560 as img %}
+    
+        <div class="jumbotron" style="background-image: url('{{ img.url }}'); min-height: 400px; height: 40vh; background-size: cover; background-position: center top; display: flex; flex-direction: column; justify-content: center;color: #fff !important">
+            <h1 class="display-4">{{ self.banner_title }}</h1>
+            <div class="lead">{{ self.banner_subtitle|richtext }}</div>
+            {% for image in page.images.all %}
+                {% if image.banner_cta %}
+                    <a class="btn btn-primary btn-lg" href="#" role="button">@todo</a>
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endfor %}
+
+
+    {# Example of an Orderable from home/models.py #}
+    <div id="carouselExampleControls" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            {% for loop_cycle in page.carousel_images.all %}
+                {% image loop_cycle.carousel_image fill-900x400 as img %}
+                <div class="carousel-item{% if forloop.counter == 1 %} active{% endif %}">
+                    <img src="{{ img.url }}" class="d-block w-100" alt="{{ img.alt }}">
+                </div>
+            {% endfor %}
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+
+
+    {% for block in page.content %}
+        {% include_block block %}
+    {% endfor %}
+
+    
+
+    
 {% endblock %}

@@ -1,5 +1,6 @@
 from django import forms
 from django.db import models
+from django.shortcuts import render
 
 # Add these:
 from modelcluster.fields import ParentalKey, ParentalManyToManyField
@@ -14,15 +15,33 @@ from wagtail.snippets.models import register_snippet
 from wagtail.images.blocks import ImageChooserBlock
 from wagtail.embeds.blocks import EmbedBlock
 from .amp_utils import PageAMPTemplateMixin
+from django.utils.translation import gettext_lazy as _
+#from wagtailcodeblock.blocks import CodeBlock
+from wagtail.contrib.routable_page.models import RoutablePageMixin, re_path
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 
-class BlogIndexPage(Page):
+class BlogIndexPage(RoutablePageMixin, Page):
     intro = RichTextField(blank=True)
     
     def get_context(self, request):
         # Update context to include only published posts, ordered by reverse-chron
         context = super().get_context(request)
-        blogpages = self.get_children().live().order_by('-first_published_at')
+        posts = self.get_children().live().order_by('-first_published_at')
+        paginator = Paginator(posts, 1)
+        # Try to get the ?page=x value
+        page = request.GET.get("page")
+        try:
+            # If the page exists and the ?page=x is an int
+            blogpages = paginator.page(page)
+        except PageNotAnInteger:
+            # If the ?page=x is not an int; show the first page
+            blogpages = paginator.page(1)
+        except EmptyPage:
+            # If the ?page=x is out of range (too high most likely)
+            # Then return the last page
+            blogpages = paginator.page(paginator.num_pages)
         context['blogpages'] = blogpages
+        context["categories"] = BlogCategory.objects.all()
         return context
 
     content_panels = Page.content_panels + [
@@ -35,6 +54,25 @@ class BlogIndexPage(Page):
         # Add extra variables and return the updated context
         context['blog_entries'] = BlogPage.objects.child_of(self).live()
         return context
+    @re_path(r'^latest/$', name="latest_posts")
+    def latest_blog_posts_only_shows_last_5(self, request, *args, **kwargs):
+        context = self.get_context(request, *args, **kwargs)
+        context["blog_entries"] = context["blog_entries"][:1]
+        return render(request, "blog/latest_posts.html", context)
+    
+    def get_sitemap_urls(self, request):
+        # Uncomment to have no sitemap for this page
+        # return []
+        sitemap = super().get_sitemap_urls(request)
+        sitemap.append(
+            {
+                "location": self.full_url + self.reverse_subpage("latest_posts"),
+                "lastmod": (self.last_published_at or self.latest_revision_created_at),
+                "priority": 0.9,
+            }
+        )
+        return sitemap
+
 
 class BlogPageTag(TaggedItemBase):
     content_object = ParentalKey(
@@ -50,19 +88,20 @@ class PersonBlock(blocks.StructBlock):
     biography = blocks.RichTextBlock()
     
     class Meta:
-        template = 'blog/templates/blog/person.html'
+        template = 'blog/person.html'
         icon = 'user'
 
 class CommonContentBlock(blocks.StreamBlock):
     heading = blocks.CharBlock(form_classname="title")
-    paragraph = blocks.RichTextBlock()
+    paragraph = blocks.RichTextBlock(features=['h1', 'h2', 'h3', 'h4', 'h5', 'bold', 'italic', 'ol', 'ul', 'hr', 'link', 'image', 'code', 'blockquote'])
+    #code = blocks.CodeBlock(label=_("Code"))
     image = ImageChooserBlock()
     
     class Meta:
         block_counts = {
             'heading': {'min_num': 1, 'max_num': 3},
         }
-    
+
 class BlogPage(PageAMPTemplateMixin, Page):
     page_description = "Use this page for converting users"
     date = models.DateField("Post date")
@@ -83,8 +122,10 @@ class BlogPage(PageAMPTemplateMixin, Page):
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
-        related_name='+'
+        related_name='+', 
+        verbose_name=_("Image")
     )
+    categories = ParentalManyToManyField("blog.BlogCategory", blank=True)
     
     
     def main_image(self):
@@ -108,10 +149,12 @@ class BlogPage(PageAMPTemplateMixin, Page):
             FieldPanel('date'),
             FieldPanel('authors', widget=forms.CheckboxSelectMultiple),
             FieldPanel('tags'),
+            FieldPanel("categories", widget=forms.CheckboxSelectMultiple),
         ], heading="Blog information"),
         FieldPanel('intro'),
         FieldPanel('body'),
         InlinePanel('gallery_images', label="Gallery images"),
+        
     ]
     
     sidebar_content_panels = [
@@ -207,4 +250,88 @@ class BlogTagIndexPage(Page):
         context = super().get_context(request)
         context['blogpages'] = blogpages
         return context
+
+class BlogCategory(models.Model):
+    """Blog catgory for a snippet."""
+
+    name = models.CharField(max_length=255)
+    slug = models.SlugField(
+        verbose_name="slug",
+        allow_unicode=True,
+        max_length=255,
+        help_text='A slug to identify posts by this category',
+    )
+
+    panels = [
+        FieldPanel("name"),
+        FieldPanel("slug"),
+    ]
+
+    class Meta:
+        verbose_name = "Blog Category"
+        verbose_name_plural = "Blog Categories"
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+register_snippet(BlogCategory)
+
+
+class ArticleBlogPage(BlogPage):
+    """A subclassed blog post page for articles."""
+
+    template = "blog/article_blog_page.html"
+
+    subtitle = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True
+    )
+    intro_image = models.ForeignKey(
+        "wagtailimages.Image",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        help_text='Best size for this image will be 1400x400'
+    )
+
+    content_panels = Page.content_panels + [
+        MultiFieldPanel([
+            FieldPanel('date'),
+            FieldPanel('authors', widget=forms.CheckboxSelectMultiple),
+            FieldPanel('tags'),
+            FieldPanel("categories", widget=forms.CheckboxSelectMultiple),
+        ], heading="Blog information"),
+        FieldPanel('intro'),
+        FieldPanel("subtitle"),
+        ImageChooserBlock("intro_image"),
+        FieldPanel('body'),
+        
+    ]
+
+
+# Second subclassed page
+class VideoBlogPage(BlogPage):
+    """A video subclassed page."""
+
+    template = "blog/video_blog_page.html"
+
+    youtube_video_id = models.CharField(max_length=30)
+
+    content_panels = Page.content_panels + [
+        MultiFieldPanel([
+            FieldPanel('date'),
+            FieldPanel('authors', widget=forms.CheckboxSelectMultiple),
+            FieldPanel('tags'),
+            FieldPanel("categories", widget=forms.CheckboxSelectMultiple),
+            
+        ], heading="Blog information"),
+        FieldPanel('intro'),
+        FieldPanel("youtube_video_id"),
+        FieldPanel('body'),
+        InlinePanel('gallery_images', label="Gallery images"),
+        
+    ]
 

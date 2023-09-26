@@ -32,10 +32,22 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     "django_countries",
     "widget_tweaks",
+    "wagtailcodeblock",
+    "wagtailmetadata",
+    "debug_toolbar",
+    "flex",
+    "streams",
+    "site_settings",
+    "subscribers",
+    "menus",
     "home",
     "search",
     "wagtail.contrib.forms",
     "wagtail.contrib.redirects",
+    "wagtail.contrib.settings",
+    "wagtail.contrib.modeladmin",
+    "wagtail.contrib.routable_page",
+    "wagtail.contrib.sitemaps",
     "wagtail.embeds",
     "wagtail.sites",
     'wagtail.locales',
@@ -55,17 +67,19 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
+    "django.contrib.sitemaps",
 ]
 
 MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
+    'django.middleware.locale.LocaleMiddleware',
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.security.SecurityMiddleware",
-    'django.middleware.locale.LocaleMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
     "allauth.account.middleware.AccountMiddleware",
 ]
@@ -88,6 +102,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 'blog.amp_context_processors.amp',
                 'django.template.context_processors.i18n',
+                "wagtail.contrib.settings.context_processors.settings",
             ],
         },
     },
@@ -138,8 +153,10 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
-
+INTERNAL_IPS = ("127.0.0.1", "172.17.0.1")
 LANGUAGE_CODE = "en-us"
+
+#LOCALE_PATHS = (os.path.join(BASE_DIR, 'locale'),)
 
 TIME_ZONE = "UTC"
 
@@ -157,6 +174,13 @@ LANGUAGES = [
 ]
 
 LANGUAGE_CODE = 'en'
+#LANGUAGES = [
+#    ('en', 'English'),
+#    ('fr', 'Français'),
+#    ('nl', 'Nederlands'),
+#]
+
+
 WAGTAIL_CONTENT_LANGUAGES = [
     ('en-GB', "English"),
     ('fr-FR', "French"),
@@ -225,3 +249,25 @@ ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_USERNAME_REQUIRED = False
 
 ACCOUNT_SIGNUP_FORM_CLASS = 'userauth.forms.SignupForm'
+
+WAGTAIL_CODE_BLOCK_THEME = None
+WAGTAIL_CODE_BLOCK_LANGUAGES = (
+    ('bash', 'Bash/Shell'),
+    ('css', 'CSS'),
+    ('html', 'HTML'),
+    ('javascript', 'Javascript'),
+    ('json', 'JSON'),
+    ('python', 'Python'),
+    ('sql', 'SQL'),
+    ('yaml', 'YAML'),
+    ('c', 'C'),
+    ('cpp', 'C++'),
+    ('dart', 'Dart'),
+    ('docker', 'Docker'),
+    ('go', 'Go'),
+    ('graphql', 'GraphQL'),
+    ('rust', 'Rust'),
+    ('solidity', 'Solidity (Ethereum)'),
+    ('typescript', 'TypeScript'),
+)
+
