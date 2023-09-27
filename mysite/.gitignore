@@ -5,3 +5,4 @@ local.py
 *.mo
 .coverage
 media/**
+*.djcache

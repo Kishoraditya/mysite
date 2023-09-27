@@ -10,6 +10,7 @@ from search import views as search_views
 from blog import amp_urls as wagtail_amp_urls
 from django.conf.urls.i18n import i18n_patterns
 from wagtail.contrib.sitemaps.views import sitemap
+from .api import api_router
 
 urlpatterns = [
     path("django-admin/", admin.site.urls),
@@ -18,6 +19,7 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),
     path('accounts/', include('userauth.urls')),
     path(r'^sitemap.xml$', sitemap),
+    path('api/v2/', api_router.urls),
 ]
 
 urlpatterns += i18n_patterns(
