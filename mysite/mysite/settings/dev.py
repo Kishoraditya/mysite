@@ -12,6 +12,18 @@ ALLOWED_HOSTS = ["*"]
 # EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 
+# Uncomment this line to enable template caching
+# Dont forget to change the LOCATION path
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+#         "LOCATION": "/path/to/your/site/cache"
+#         "LOCATION": "D:/data/NexGen/website/mysite/cache"
+#     }
+# }
+
+
+
 try:
     from .local import *
 except ImportError:

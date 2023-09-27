@@ -40,14 +40,20 @@ INSTALLED_APPS = [
     "site_settings",
     "subscribers",
     "menus",
+    "contact",
     "home",
     "search",
+    "captcha",
+    "wagtailcaptcha",
+    "rest_framework",
+    "core",
     "wagtail.contrib.forms",
     "wagtail.contrib.redirects",
     "wagtail.contrib.settings",
     "wagtail.contrib.modeladmin",
     "wagtail.contrib.routable_page",
     "wagtail.contrib.sitemaps",
+    "wagtail.contrib.styleguide",
     "wagtail.embeds",
     "wagtail.sites",
     'wagtail.locales',
@@ -58,6 +64,7 @@ INSTALLED_APPS = [
     "wagtail.search",
     "wagtail.admin",
     "wagtail",
+    "wagtail.api.v2",
     "modelcluster",
     "taggit",
     "django.contrib.admin",
@@ -270,4 +277,28 @@ WAGTAIL_CODE_BLOCK_LANGUAGES = (
     ('solidity', 'Solidity (Ethereum)'),
     ('typescript', 'TypeScript'),
 )
+
+# Recaptcha settings
+# This key only allows localhost. For production, you'll want your own API keys.
+# You can get Recaptcha API key from google.com/recaptcha
+RECAPTCHA_PUBLIC_KEY = "6LcNrZcUAAAAAADyWEJTIOXKr6x-8POg3Iqp8rEM"
+RECAPTCHA_PRIVATE_KEY = "6LcNrZcUAAAAAPISF06kecWBC4EJPXy2uo_penMC"
+NOCAPTCHA = True
+
+
+#LOGIN_URL = '/login/'
+#LOGIN_REDIRECT_URL = '/'
+#ACCOUNT_AUTHENTICATION_METHOD = "username_email"
+#ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+#ACCOUNT_EMAIL_REQUIRED = True
+#ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+#ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+#ACCOUNT_LOGOUT_ON_GET = True
+#ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
+#ACCOUNT_LOGOUT_REDIRECT_URL = '/login/'
+#ACCOUNT_PRESERVE_USERNAME_CASING = False
+#ACCOUNT_SESSION_REMEMBER = True
+#ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = False
+#ACCOUNT_USERNAME_BLACKLIST = ["kalob", "admin", "god"]
+#ACCOUNT_USERNAME_MIN_LENGTH = 2
 

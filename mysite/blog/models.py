@@ -19,14 +19,50 @@ from django.utils.translation import gettext_lazy as _
 #from wagtailcodeblock.blocks import CodeBlock
 from wagtail.contrib.routable_page.models import RoutablePageMixin, re_path
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from django.core.cache import cache
+from django.core.cache.utils import make_template_fragment_key
+from wagtail.api import APIField
+from rest_framework.fields import Field
+from wagtail.images.api.fields import ImageRenditionField
+
+
+class BlogChildPagesSerializer(Field):
+    def to_representation(self, child_pages):
+        # logic in here
+        return_posts = []
+        for child in child_pages:
+            post_dict = {
+                'id': child.id,
+                'title': child.title,
+                'slug': child.slug,
+                'url': child.url,
+            }
+            return_posts.append(post_dict)
+        return return_posts
+        # Pythonic comprehensions
+        # return [
+        #     {
+        #         'id': child.id,
+        #         'title': child.title,
+        #         'slug': child.slug,
+        #         'url': child.url,
+        #     } for child in child_pages
+        # ]
+
 
 class BlogIndexPage(RoutablePageMixin, Page):
+    max_count = 1
+    subpage_types = ['blog.VideoBlogPage', 'blog.ArticleBlogPage']
     intro = RichTextField(blank=True)
-    
+    template = "blog/blog_index_page.html"
+    ajax_template = "blog/blog_index_page_ajax.html"
     def get_context(self, request):
         # Update context to include only published posts, ordered by reverse-chron
         context = super().get_context(request)
         posts = self.get_children().live().order_by('-first_published_at')
+#        if request.GET.get('tag', None):
+#            tags = request.GET.get('tag')
+#            posts = posts.filter(tags__slug__in=[tags])
         paginator = Paginator(posts, 1)
         # Try to get the ?page=x value
         page = request.GET.get("page")
@@ -47,13 +83,54 @@ class BlogIndexPage(RoutablePageMixin, Page):
     content_panels = Page.content_panels + [
         FieldPanel('intro')
     ]
-    
+    @re_path(r"^july-2019/$", name="july_2019")
+    @re_path(r"^year/(\d+)/(\d+)/$", name="blogs_by_year")
+    def blogs_by_year(self, request, year=None, month=None):
+        context = self.get_context(request)
+        # Implement your BlogDetailPage filter. Maybe something like this:
+        # if year is not None and month is not None:
+        #     posts = BlogDetailPage.objects.live().public().filter(year=year, month=month)
+        # else:
+        #     # No year and no month were set, assume this is july-2019 only posts
+        #     posts = BlogDetailPage.objects.live().public().filter(year=2019, month=07)
+        # print(year)
+        # print(month)
+        # context["posts"] = posts
+
+        # Note: The below template (latest_posts.html) will need to be adjusted
+        return render(request, "blog/latest_posts.html", context)
+
+    @re_path(r"^category/(?P<cat_slug>[-\w]*)/$", name="category_view")
+    def category_view(self, request, cat_slug):
+        """Find blog posts based on a category."""
+        context = self.get_context(request)
+
+        try:
+            # Look for the blog category by its slug.
+            category = BlogCategory.objects.get(slug=cat_slug)
+        except Exception:
+            # Blog category doesnt exist (ie /blog/category/missing-category/)
+            # Redirect to self.url, return a 404.. that's up to you!
+            category = None
+
+        if category is None:
+            # This is an additional check.
+            # If the category is None, do something. Maybe default to a particular category.
+            # Or redirect the user to /blog/ ¯\_(ツ)_/¯
+            pass
+
+        context["posts"] = BlogPage.objects.live().public().filter(categories__in=[category])
+
+        # Note: The below template (latest_posts.html) will need to be adjusted
+        return render(request, "blog/latest_posts.html", context)
+
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
 
         # Add extra variables and return the updated context
         context['blog_entries'] = BlogPage.objects.child_of(self).live()
         return context
+    
     @re_path(r'^latest/$', name="latest_posts")
     def latest_blog_posts_only_shows_last_5(self, request, *args, **kwargs):
         context = self.get_context(request, *args, **kwargs)
@@ -72,6 +149,15 @@ class BlogIndexPage(RoutablePageMixin, Page):
             }
         )
         return sitemap
+    api_fields = [
+        APIField("posts", serializer=BlogChildPagesSerializer(source='get_child_pages')),
+    ]
+
+    @property
+    def get_child_pages(self):
+        return self.get_children().public().live()
+        # return self.get_children().public().live().values("id", "title", "slug")
+
 
 
 class BlogPageTag(TaggedItemBase):
@@ -103,6 +189,10 @@ class CommonContentBlock(blocks.StreamBlock):
         }
 
 class BlogPage(PageAMPTemplateMixin, Page):
+    
+    subpage_types = []
+    parent_page_types = ['blog.BlogIndexPage']
+
     page_description = "Use this page for converting users"
     date = models.DateField("Post date")
     intro = models.CharField(max_length=250)
@@ -134,6 +224,16 @@ class BlogPage(PageAMPTemplateMixin, Page):
             return gallery_item.image
         else:
             return None
+        
+    def save(self, *args, **kwargs):
+        """Create a template fragment key.
+        Then delete the key."""
+        key = make_template_fragment_key(
+            "blog_post_preview",
+            [self.id]
+        )
+        cache.delete(key)
+        return super().save(*args, **kwargs)
 
     # Search index configuration
     search_fields = Page.search_fields + [
@@ -218,6 +318,26 @@ class BlogPageGalleryImage(Orderable):
         FieldPanel('image'),
         FieldPanel('caption'),
     ]
+    
+    #@property
+    #def image(self):
+    #    return self.image
+
+    #api_fields = [
+    #    APIField("caption"),
+    
+    # This is using a custom django rest framework serializer
+    #    APIField("image", serializer=ImageSerializedField()),
+    # The below APIField is using a Wagtail-built DRF Serializer that supports
+    # custom image rendition sizes
+    #APIField(
+    #        "image",
+    #        serializer=ImageRenditionField(
+    #            'fill-200x250',
+    #            source="image"
+    #        )
+    #    ),
+    #]
 
 @register_snippet
 class Author(models.Model):
@@ -334,4 +454,17 @@ class VideoBlogPage(BlogPage):
         InlinePanel('gallery_images', label="Gallery images"),
         
     ]
+
+class ImageSerializedField(Field):
+    """A custom serializer used in Wagtails v2 API."""
+
+    def to_representation(self, value):
+        """Return the image URL, title and dimensions."""
+        return {
+            "url": value.file.url,
+            "title": value.title,
+            "width": value.width,
+            "height": value.height,
+        }
+
 

@@ -7,9 +7,31 @@ from wagtail.admin.panels import FieldPanel, PageChooserPanel, MultipleChooserPa
 from wagtail.images.blocks import ImageChooserBlock
 from streams import blocks
 from wagtail.contrib.routable_page.models import RoutablePageMixin, path
+from wagtail.api import APIField
+from rest_framework.fields import Field
+
+
+class BannerCTASerializer(Field):
+    def to_representation(self, page):
+        return {
+            'id': page.id,
+            'title': page.title,
+            'first_published_at': page.first_published_at,
+            'owner': page.owner.username,
+            'slug': page.slug,
+            'url': page.url,
+        }
 class HomePage(RoutablePageMixin,Page):
     """Home page model."""
-    max_count = 1
+    #max_count = 1
+    subpage_types = [
+        'blog.BlogIndexPage',
+        'contact.ContactPage',
+        'flex.FlexPage',
+    ]
+    parent_page_type = [
+        'wagtailcore.Page'
+    ]
 
     banner_title = models.CharField(max_length=100, blank=False, null=True)
     banner_subtitle = RichTextField(features=["bold", "italic"])
@@ -30,6 +52,21 @@ class HomePage(RoutablePageMixin,Page):
             heading="Carousel Images",
             ),
     ]
+    
+    api_fields = [
+        APIField("banner_title"),
+        APIField("banner_subtitle"),
+        APIField("content"),
+        APIField("carousel_images"),
+        APIField("banner_cta", serializer=BannerCTASerializer()),
+        APIField("a_custom_api_response"),
+    ]
+    
+    @property
+    def a_custom_api_response(self):
+        # return ["SOMETHING CUSTOM", 3.14, [1, 2, 3, 'a', 'b', 'c']]
+        # logic goes in here
+        return f"Banner Title Is: {self.banner_title}"
 
     class Meta:
 
@@ -45,6 +82,10 @@ class HomePage(RoutablePageMixin,Page):
             },
             template="home/subscribe.html",
         )
+    
+    def get_admin_display_title(self):
+        return "Custom Home Page Title"
+
 
 
 
@@ -82,4 +123,18 @@ class HomePageCarouselImages(Orderable):
     )
 
     panels = [FieldPanel("carousel_image")]
+    
 
+
+
+# # This will change the "title" field 's verbose name to "Custom Name".
+# # But you'd still reference it in the template as `page.title`
+#HomePage._meta.get_field("title").verbose_name = "Custom Name"
+# # Here we are removing the help text. But to change it, simply change None to a string.
+#HomePage._meta.get_field("title").help_text = None
+# # Below is the new default title for a Home Page.
+# # This only appears when you create a new page.
+# HomePage._meta.get_field("title").default = "Default HomePage Title"
+# # Lastly, we're adding a default `slug` value to the page.
+# # This does not need to reflect the same (or similar) value that the `title` field has.
+# HomePage._meta.get_field("slug").default = "default-homepage-title"
