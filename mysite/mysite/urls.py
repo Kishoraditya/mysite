@@ -18,7 +18,7 @@ urlpatterns = [
     path("documents/", include(wagtaildocs_urls)),
     path('accounts/', include('allauth.urls')),
     path('accounts/', include('userauth.urls')),
-    path(r'^sitemap.xml$', sitemap),
+    path('sitemap.xml', sitemap),
     path('api/v2/', api_router.urls),
 ]
 
