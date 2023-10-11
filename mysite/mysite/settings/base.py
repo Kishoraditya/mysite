@@ -24,6 +24,8 @@ BASE_DIR = os.path.dirname(PROJECT_DIR)
 # Application definition
 
 INSTALLED_APPS = [
+    "django_comments_xtd",
+    "django_comments",
     "blog",
     "scraper",
     "userauth",
@@ -50,7 +52,6 @@ INSTALLED_APPS = [
     "wagtail.contrib.forms",
     "wagtail.contrib.redirects",
     "wagtail.contrib.settings",
-    "wagtail.contrib.modeladmin",
     "wagtail.contrib.routable_page",
     "wagtail.contrib.sitemaps",
     "wagtail.contrib.styleguide",
@@ -247,6 +248,23 @@ AUTHENTICATION_BACKENDS = (
     "allauth.account.auth_backends.AuthenticationBackend",
     
 )
+
+
+COMMENTS_APP = "django_comments_xtd"
+COMMENTS_XTD_SALT = (b"what is this "
+                     b"part 2 what is this")
+COMMENTS_XTD_FROM_EMAIL = "kaizen.tempmail@gmail.com"
+COMMENTS_XTD_CONTACT_EMAIL = "kaizen.tempmail@gmail.com"
+COMMENTS_XTD_MODEL = 'blog.models.CustomComment'
+COMMENTS_XTD_MAX_THREAD_LEVEL = 1  # default is 0
+COMMENTS_XTD_LIST_ORDER = ('-thread_id', 'order')  # default is ('thread_id', 'order')
+COMMENTS_XTD_APP_MODEL_OPTIONS = {
+    'cms.articlepage': {
+        'allow_flagging': False,
+        'allow_feedback': True,
+        'show_feedback': True,
+    }
+}
 
 SITE_ID = 1
 

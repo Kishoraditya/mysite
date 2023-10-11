@@ -1,8 +1,6 @@
 {% extends "base.html" %}
 
-{% load wagtailcore_tags %}
-
-{% load wagtailcore_tags wagtailimages_tags %}
+{% load wagtailcore_tags wagtailimages_tags  widget_tweaks comments comments_xtd static %}
 
 {% block body_class %}template-blogpage{% endblock %}
 {% if page %}
@@ -106,6 +104,17 @@
                 {% endif %}
             {% endfor %}
         </article>
+        <div class="container-fluid mt-4 comment-form">
+            {% render_comment_form for page %}
+        </div>
+        
+        {% get_comment_count for page as comment_count %}
+        {% if comment_count %}
+            <hr>
+            <div class="container-fluid mt-4 media-list">
+                {% render_xtdcomment_tree for page allow_feedback show_feedback %}
+            </div>
+        {% endif %}
 
     {% endblock %}
 {% endif %}

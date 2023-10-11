@@ -24,7 +24,7 @@ from django.core.cache.utils import make_template_fragment_key
 from wagtail.api import APIField
 from rest_framework.fields import Field
 from wagtail.images.api.fields import ImageRenditionField
-
+from django_comments_xtd.models import XtdComment
 
 class BlogChildPagesSerializer(Field):
     def to_representation(self, child_pages):
@@ -217,7 +217,8 @@ class BlogPage(PageAMPTemplateMixin, Page):
     )
     categories = ParentalManyToManyField("blog.BlogCategory", blank=True)
     
-    
+    def get_absolute_url(self):
+        return self.get_url()
     def main_image(self):
         gallery_item = self.gallery_images.first()
         if gallery_item:
@@ -254,7 +255,7 @@ class BlogPage(PageAMPTemplateMixin, Page):
         FieldPanel('intro'),
         FieldPanel('body'),
         InlinePanel('gallery_images', label="Gallery images"),
-        
+        InlinePanel('customcomments', label=_("Comments")),
     ]
     
     sidebar_content_panels = [
@@ -467,4 +468,12 @@ class ImageSerializedField(Field):
             "height": value.height,
         }
 
+class CustomComment(XtdComment):
+    page = ParentalKey(BlogPage, on_delete=models.CASCADE, related_name='customcomments')
+
+    def save(self, *args, **kwargs):
+        if self.user:
+            self.user_name = self.user.display_name
+        self.page = BlogPage.objects.get(pk=self.object_pk)
+        super(CustomComment, self).save(*args, **kwargs)
 

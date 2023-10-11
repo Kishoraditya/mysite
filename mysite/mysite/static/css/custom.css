@@ -2,3 +2,33 @@
 .sidebar-loading__inner, .sidebar__inner{
     background-color: aquamarine;
 }*/
+.form-control.input-field-comment {
+    width: 800px;
+    max-width: 100%;
+    height: 80px;
+}
+/* for the comment section on article pages */
+.comment-form  {
+    width: 800px;
+    max-width: 100%;
+    margin-left: 0;
+}
+.media-list {
+    width: 800px;
+    max-width: 100%;
+    margin-left: 0;
+}
+.xtdcomment {
+    border: 1px solid lightgrey;
+    margin-bottom: 10px;
+    padding: 5px;
+}
+/* for thumbnail image in comments */
+.profile-image-thumbnail {
+    float: left;
+    width: 64px;
+    height: 64px;
+    max-width: 100%;
+    margin-right: 5px;
+    margin-bottom: 5px;
+}

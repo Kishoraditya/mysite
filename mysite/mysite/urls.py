@@ -25,6 +25,7 @@ urlpatterns = [
 urlpatterns += i18n_patterns(
     path('search/', search_views.search, name='search'),
     path("", include(wagtail_urls)),
+    path('comments/', include('django_comments_xtd.urls')),
     
     prefix_default_language=False,
 )

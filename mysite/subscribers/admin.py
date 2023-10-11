@@ -1,14 +1,16 @@
 from django.contrib import admin
 
 # Register your models here.
-from wagtail.contrib.modeladmin.options import (
-    ModelAdmin,
-    modeladmin_register,
-)
+#from wagtail.contrib.modeladmin.options import (
+#    ModelAdmin,
+#    modeladmin_register,
+#)
+from wagtail.snippets.models import register_snippet
+from wagtail.snippets.views.snippets import SnippetViewSet
 from .models import Subscribers
 
 
-class SubscriberAdmin(ModelAdmin):
+class SubscriberAdmin(SnippetViewSet):
     """Subscriber admin."""
 
     model = Subscribers
@@ -20,5 +22,4 @@ class SubscriberAdmin(ModelAdmin):
     list_display = ("email", "full_name",)
     search_fields = ("email", "full_name",)
 
-modeladmin_register(SubscriberAdmin)
-    
+register_snippet(SubscriberAdmin)
