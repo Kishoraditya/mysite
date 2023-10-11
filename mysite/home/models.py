@@ -90,6 +90,7 @@ class HomePage(RoutablePageMixin,Page):
 
 
 class HomeImage(Orderable, models.Model):
+    id = models.BigAutoField(primary_key=True)
     page = ParentalKey(HomePage, on_delete=models.CASCADE, related_name='images')
     banner_image = models.ForeignKey(
         "wagtailimages.Image",
@@ -112,7 +113,7 @@ class HomeImage(Orderable, models.Model):
 
 class HomePageCarouselImages(Orderable):
     """Between 1 and 5 images for the home page carousel."""
-
+    id = models.BigAutoField(primary_key=True)
     page = ParentalKey(HomePage, related_name="carousel_images")
     carousel_image = models.ForeignKey(
         "wagtailimages.Image",
