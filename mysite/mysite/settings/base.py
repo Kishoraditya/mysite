@@ -160,7 +160,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
-INTERNAL_IPS = ("127.0.0.1", "172.17.0.1")
+INTERNAL_IPS = ("127.0.0.1", "172.17.0.1","0.0.0.0", "localhost")
 LANGUAGE_CODE = "en-us"
 
 #LOCALE_PATHS = (os.path.join(BASE_DIR, 'locale'),)

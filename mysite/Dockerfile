@@ -1,8 +1,10 @@
 # Use an official Python runtime based on Debian 10 "buster" as a parent image.
-FROM python:3.8.1-slim-buster
+FROM python:3.11-buster
 
 # Add user that will be used in the container.
-RUN useradd wagtail
+#RUN adduser --disabled-password --gecos "wagtail"
+#RUN useradd wagtail
+RUN useradd -ms /bin/bash wagtail
 
 # Port used by this container to serve HTTP.
 EXPOSE 8000
@@ -13,7 +15,6 @@ EXPOSE 8000
 #    command.
 ENV PYTHONUNBUFFERED=1 \
     PORT=8000
-
 # Install system packages required by Wagtail and Django.
 RUN apt-get update --yes --quiet && apt-get install --yes --quiet --no-install-recommends \
     build-essential \
@@ -28,16 +29,29 @@ RUN apt-get update --yes --quiet && apt-get install --yes --quiet --no-install-r
 RUN pip install "gunicorn==20.0.4"
 
 # Install the project requirements.
+RUN pip install --upgrade pip
 COPY requirements.txt /
 RUN pip install -r /requirements.txt
 
+# Install psycopg2 for Postgres
+RUN pip install psycopg2-binary
+
+# Copy entrypoint script
+COPY entrypoint.sh /
+
+# Use entrypoint script to run migrations before starting app
+ENTRYPOINT ["/entrypoint.sh"]
+
+# Postgres Entrypoint
+#COPY entrypoint.sh entrypoint.sh
+#ENTRYPOINT ["/entrypoint.sh"]
 # Use /app folder as a directory where the source code is stored.
-WORKDIR /app
+WORKDIR /mysite
 
 # Set this directory to be owned by the "wagtail" user. This Wagtail project
 # uses SQLite, the folder needs to be owned by the user that
 # will be writing to the database file.
-RUN chown wagtail:wagtail /app
+RUN chown wagtail:wagtail /mysite
 
 # Copy the source code of the project into the container.
 COPY --chown=wagtail:wagtail . .
