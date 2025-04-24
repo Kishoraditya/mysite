@@ -118,7 +118,7 @@ flake8_simplify==0.21.0
 gitdb==4.0.10
 GitPython==3.1.37
 gunicorn==21.2.0
-h11==0.14.0
+h11==0.16.0
 html5lib==1.1
 hyperlink==21.0.0
 hypothesis==6.87.0
