@@ -248,7 +248,7 @@ tldextract==3.5.0
 tokenize-rt==5.2.0
 tomli==2.0.1
 tomlkit==0.12.1
-tornado==6.3.3
+tornado==6.5.1
 tox==4.11.3
 tox-travis==0.12
 traitlets==5.10.1
